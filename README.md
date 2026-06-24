@@ -1,5 +1,25 @@
+#Main idea
+The code implements a telemedicine triage agent that uses the Mistral LLM to analyze patient complaints by retrieving structured clinical guidelines and traversing a medical knowledge graph to provide evidence-based summaries and operator tips. The code utilizes information from the Russian Ministry of Health's clinical recommendations portal (`https://cr.minzdrav.gov.ru`) through a structured, hardcoded database rather than live web scraping.
 
-# 1. System Architecture and Operational Workflow
+### 1. Static Data Repository (`CLINICAL_REQUIREMENTS_DB`)
+The code contains a Python dictionary named `CLINICAL_REQUIREMENTS_DB` that acts as a local cache of specific clinical guidelines. Each entry in this database corresponds to a major medical condition (e.g., hypertension, diabetes, stroke) and includes metadata directly sourced or summarized from the Ministry's portal:
+
+*   **Source URL:** Each entry contains a specific `url` field pointing to the official page on `cr.minzdrav.gov.ru` (e.g., `"url": "https://cr.minzdrav.gov.ru/clin-rec/hypertension"`). This ensures that the operator can verify the source of the advice.
+*   **Clinical Guidelines:** The `guidelines` list within each entry contains key diagnostic and treatment protocols extracted from the official documents. For example, for hypertension, it includes the definition of arterial hypertension (≥140/90 mm Hg) and target blood pressure values (<130/80 mm Hg).
+*   **Metadata:** It tracks the `last_updated` date and `evidence_level` (e.g., "A"), which are critical for assessing the currency and reliability of the medical advice.
+
+### 2. Retrieval Tool (`search_clinical_guidelines_ru`)
+The code implements a LangChain tool named `search_clinical_guidelines_ru`. When the LLM agent identifies a medical condition in the patient's complaint, it invokes this tool. The tool performs the following steps:
+*   **Keyword Matching:** It searches the keys and content of `CLINICAL_REQUIREMENTS_DB` for matches with the patient's condition (e.g., matching "high blood pressure" to the "hypertension" entry).
+*   **Structured Output:** If a match is found, it returns a JSON object containing the relevant guidelines, the official URL from the Ministry's site, and the evidence level. This provides the LLM with authoritative, non-hallucinated facts to include in its response.
+
+### 3. Integration with the Knowledge Graph
+While the `CLINICAL_REQUIREMENTS_DB` holds the detailed text of the guidelines, the `MEDICAL_KNOWLEDGE_GRAPH` contains nodes representing these guidelines (e.g., `guideline_1`). 
+*   **Cross-Referencing:** The graph links clinical entities (like "Hypertension") to their corresponding guideline nodes via `follows` relationships. 
+*   **Fact-Checking:** Claims made by patients or found in unstructured data are linked to these guideline nodes via `supports` or `contradicts` edges. This allows the system to automatically flag misinformation by checking if a claim contradicts the official Ministry of Health recommendations stored in the graph.
+
+
+# 2. System Architecture and Operational Workflow
 
 The code implements a **Retrieval-Augmented Generation (RAG)** framework specialized for telemedicine triage and operator support. Unlike generic RAG systems that rely solely on vector similarity search over unstructured text, this system employs a **hybrid retrieval strategy** combining structured database lookups with symbolic knowledge graph traversal.
 
@@ -38,5 +58,3 @@ The integration of a Knowledge Graph (KG) addresses fundamental limitations of p
 *   **Mitigation of Hallucination:** By grounding responses in a curated set of nodes and edges, the system constrains the LLM's generation space. The graph acts as a symbolic "guardrail," preventing the model from inventing relationships that do not exist in the validated knowledge base.
 *   **Handling Contradictory Information:** Medical knowledge evolves, and outdated information persists in training data. Vector stores struggle to distinguish between current and deprecated facts. The KG explicitly models temporal validity and verdicts, allowing the system to programmatically suppress refuted claims regardless of their semantic similarity to the query.
 *   **Relational Reasoning over Semantic Similarity:** Patient problems often require understanding causal or therapeutic links, not just lexical similarity. A vector search might retrieve documents about "headaches" when queried for "hypertension," but the KG explicitly encodes the `requires` or `treated_by` relationships, enabling precise retrieval of clinically relevant context that purely statistical models may miss.
-
-In summary, the code demonstrates a neuro-symbolic approach where the LLM provides linguistic flexibility and interface capabilities, while the Knowledge Graph ensures clinical accuracy, traceability, and logical consistency.
