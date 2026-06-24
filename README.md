@@ -1,4 +1,4 @@
-#Main idea
+# Main idea
 The code implements a telemedicine triage agent that uses the Mistral LLM to analyze patient complaints by retrieving structured clinical guidelines and traversing a medical knowledge graph to provide evidence-based summaries and operator tips. The code utilizes information from the Russian Ministry of Health's clinical recommendations portal (`https://cr.minzdrav.gov.ru`) through a structured, hardcoded database rather than live web scraping.
 
 ### 1. Static Data Repository (`CLINICAL_REQUIREMENTS_DB`)
