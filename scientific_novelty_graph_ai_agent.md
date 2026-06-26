@@ -1,4 +1,4 @@
-# Short Review: Knowledge Graphs for AI Agents in Telemedicine
+# Scientific Novelty: Knowledge Graphs for AI Agents in Telemedicine
 
 ## 1. Introduction
 
@@ -56,3 +56,4 @@ The `guideline` nodes carry `url` and `last_updated` attributes, enabling **sour
 ## 5. Conclusion
 
 The scientific novelty of the analyzed approach is the **synergistic fusion of structured medical knowledge (KG) with adaptive agentic reasoning (LLM)**, creating a system that is simultaneously more accurate, interpretable, and safe than either component alone. While the current prototype is small-scale, it demonstrates the core architectural principles validated by recent SOTA research: KGs serve as **verifiable factual anchors** that constrain LLM generation, while agents make complex structured knowledge accessible through natural language — a critical advance for high-stakes domains like telemedicine where errors have life-or-death consequences.
+
